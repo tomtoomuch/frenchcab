@@ -16,3 +16,7 @@ Chaque utilisateur dispose d'une branche créée sur ```origin/dev/```
 Les commits sont étiquetés en fonction du type de travail qui a été effectué.
 Par exemple : 
 <doc>Mise à jour de la doc
+<fix>Corrrection de la ligne / fichier / fonction
+<feat>Ajout de la fonctionnalité
+
+## Déploiement et lancement
