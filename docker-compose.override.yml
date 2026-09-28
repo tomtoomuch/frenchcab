@@ -1,13 +1,8 @@
 services:
   backend:
     build: ./backend
-    context: ./backend
     container_name: conteneur-back
-    
 
   frontend:
     build: ./frontend
-    context: ./frontend
     container_name: conteneur-front
-
-      

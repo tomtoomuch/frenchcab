@@ -5,7 +5,7 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ./backend:./backend
+      - ./backend:/app
     restart: always
 
   frontend:
@@ -14,11 +14,9 @@ services:
     ports:
       - "4200:80"
     volumes:
-        - ./frontend:./frontend
+      - ./frontend:/app
     depends_on:
       - backend
     restart: always
 
 volumes:
-    - ./backend:
-    - ./frontend:
