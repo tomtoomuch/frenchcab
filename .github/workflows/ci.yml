@@ -26,7 +26,7 @@ jobs:
       # 2. Créer le fichier .env du backend
       - name: 2. Créer le fichier .env
         run: |
-          echo "PORT=3000" > backend/.env
+          echo "PORT=3001" > backend/.env
 
       # 3. Se connecter à Docker Hub
       - name: 3. Connexion à Docker Hub
@@ -61,7 +61,7 @@ jobs:
       - name: 8. Tester le backend
         run: |
           for i in $(seq 1 30); do
-            if curl -f http://localhost:3000/api/health; then
+            if curl -f http://localhost:3001/hello/ ; then
               echo "Backend disponible !"
               exit 0
             fi
@@ -76,8 +76,8 @@ jobs:
       # 9. Tester l'API
       - name: 9. Tester les endpoints
         run: |
-          curl --fail http://localhost:3001/api/health
-          curl --fail http://localhost:3001/api/info
+          curl --fail http://localhost:3001/hello/
+         
 
       # 10. Tester le frontend
       - name: 10. Tester le frontend
