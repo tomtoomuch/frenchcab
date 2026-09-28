@@ -76,8 +76,8 @@ jobs:
       # 9. Tester l'API
       - name: 9. Tester les endpoints
         run: |
-          curl --fail http://localhost:3000/api/health
-          curl --fail http://localhost:3000/api/info
+          curl --fail http://localhost:3001/api/health
+          curl --fail http://localhost:3001/api/info
 
       # 10. Tester le frontend
       - name: 10. Tester le frontend
