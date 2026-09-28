@@ -1,0 +1,47 @@
+name: Frenchcab - CD - Déploiement
+
+run-name: ${{ github.actor }} - CD
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Se connecter à la VM Azure
+      - name: Déployer sur la VM Azure
+        uses: appleboy/ssh-action@v1
+        with:
+
+          # IP publique de la VM
+          host: ${{ vars.VM_HOST }}
+
+          # Utilisateur SSH
+          username: ${{ vars.VM_USER }}
+
+          # Mot de passe SSH
+          password: ${{ secrets.VM_PASSWORD }}
+
+          # Commandes exécutées sur la VM
+          script: |
+
+            # Aller dans le dossier du projet
+            cd /home/groupe1/frenchcab
+
+            # Télécharger les nouvelles images depuis Docker Hub
+            docker compose pull
+
+            # Redémarrer les conteneurs avec les nouvelles images
+            docker compose up -d
+
+            # Vérifier l'état des conteneurs
+            docker compose ps
