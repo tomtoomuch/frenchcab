@@ -1,16 +1,24 @@
 services:
   backend:
-    build: ./backend
+    image: emfall/frenchcab-backend:latest
     container_name: conteneur-back
     ports:
       - "3001:3001"
+    volumes:
+      - ./backend:./backend
     restart: always
 
   frontend:
-    build: ./frontend
+    image: emfall/frenchcab-frontend:latest
     container_name: conteneur-front
     ports:
       - "4200:80"
+    volumes:
+        - ./frontend:./frontend
     depends_on:
       - backend
     restart: always
+
+volumes:
+    - ./backend:
+    - ./frontend:
