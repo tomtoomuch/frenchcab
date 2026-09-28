@@ -70,6 +70,15 @@ Par exemple :
 | total_amount          | Montant total de la course facturé au client. N'inclut pas les pourboires en espèce.                                                                                                                                                                          | float                            |
 | congestion_surcharge  | Montant total collecté lors d'un trajet depuis et vers l'état de New York en traversant Manhattan par le sud de la 96th rue.                                                                                                                                  | float                            |
 
+**Données géographiques à croiser avec les points de départ et d'arrivée des trajets**
+
+| Nom du champ | Description            | Type |
+| ------------ | ---------------------- | ---- |
+| locationID   | Identifiant de la zone | int  |
+| borough      | Quartier               | str  |
+| zone         | zone du quartier       | str  |
+| service_zone | zone de service        | str  |
+
 ##  Dictionnaire de termes 'métier'
 
 TPEP - Taxicab Passenger Enhancement Program
