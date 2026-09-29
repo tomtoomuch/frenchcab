@@ -6,6 +6,8 @@ services:
       - "3001:3001"
     volumes:
       - ./backend:/app
+      # Garantit que Docker synchronise correctement le dossier de la DB
+      - ./backend/data:/app/data  
     restart: always
 
   frontend:
@@ -20,3 +22,5 @@ services:
     restart: always
 
 volumes:
+  frontend:
+  backend:
