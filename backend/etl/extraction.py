@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
 DEFAULT_INPUT = BASE_DIR / "data" / "query.csv"
 DEFAULT_OUTPUT = BASE_DIR / "data" / "clean"
 
-# Noms CSV (minuscules) -> noms officiels TLC
+
 RENAME = {
     "vendorid": "VendorID",
     "tpep_pickup_datetime": "tpep_pickup_datetime",
@@ -47,6 +47,9 @@ VALID_VENDORS = {1, 2, 6, 7}
 VALID_RATECODES = {1, 2, 3, 4, 5, 6, 99}
 VALID_PAYMENTS = {0, 1, 2, 3, 4, 5, 6}
 
+# store_and_fwd_flag : Y -> 1, N -> 0
+STORE_FWD_MAP = {"Y": 1, "N": 0}
+
 
 def transform(df: pd.DataFrame) -> pd.DataFrame:
     # renommage + typage + colonnes dérivées
@@ -64,7 +67,12 @@ def transform(df: pd.DataFrame) -> pd.DataFrame:
     if "cbd_congestion_fee" not in df.columns:
         df["cbd_congestion_fee"] = 0.0
 
-    df["store_and_fwd_flag"] = df["store_and_fwd_flag"].astype("string")
+    # Y -> 1, N -> 0, autre / vide -> <NA>
+    df["store_and_fwd_flag"] = (
+        df["store_and_fwd_flag"].astype("string").str.strip().str.upper()
+        .map(STORE_FWD_MAP)
+        .astype("Int64")
+    )
 
     # Colonnes dérivées utiles pour l'analyse
     df["trip_duration_min"] = (
@@ -97,9 +105,9 @@ def filter_rows(df: pd.DataFrame, year: int | None, stats: Counter) -> pd.DataFr
 
     df = df[~rejected].copy()
 
-    # passenger_count = 0 -> inconnu,on garde la course
+    # passenger_count = 0 -> inconnu, on garde la course
     df.loc[df["passenger_count"] == 0, "passenger_count"] = pd.NA
-    # ratecodeID 99 -> inconnu
+    # RatecodeID 99 -> inconnu
     df.loc[df["RatecodeID"] == 99, "RatecodeID"] = pd.NA
 
     before = len(df)
@@ -113,8 +121,9 @@ def run(input_path: Path, output_dir: Path, year: int | None, chunksize: int,
     output_dir.mkdir(parents=True, exist_ok=True)
     suffix = f"_{year}" if year else ""
     out_file = output_dir / f"yellow_tripdata{suffix}.csv"
+    report_file = output_dir / f"rapport{suffix}.json"
 
-    # On ne lit pas les colonnes techniques Socrata (":id", ":version", ...)
+    # on ne lit pas les colonnes techniques socrata (":id", ":version", ...)
     header = pd.read_csv(input_path, nrows=0).columns
     usecols = [c for c in header if not c.startswith(":")]
     print(f"Colonnes lues ({len(usecols)}) : {usecols}")
@@ -151,6 +160,9 @@ def run(input_path: Path, output_dir: Path, year: int | None, chunksize: int,
         "duree_s": round(time.time() - t0, 1),
     }
 
+    report_file.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(json.dumps(report, indent=2, ensure_ascii=False))
+    print(f"Rapport écrit : {report_file}")
 
 
 def main() -> None:
