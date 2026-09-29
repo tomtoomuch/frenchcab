@@ -1,6 +1,6 @@
 node_modules/
 backend/node_modules/
-backend/data
+backend/data/**
 extraction.txt
 backend/data/frenchcab.db
 backend/data/fichier_creation_bdd.sql
