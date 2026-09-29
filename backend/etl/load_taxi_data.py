@@ -10,6 +10,6 @@ import pandas as pd
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # backend/
-DEFAULT_INPUT = BASE_DIR / "data" / "query.csv"
+DEFAULT_INPUT = BASE_DIR / "data" / "clean" / "yellow_tripdata_2023.csv"
 
 df = pd.read_csv()
