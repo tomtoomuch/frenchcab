@@ -9,7 +9,7 @@ router.get('/courseID', (req,res) => {
 
     const id  = Number(req.query.id);
     //console.log("id reçu : ", id)
-    courseModel.trouverCourse(id, (err, course) => {
+    courseModel.trouverCourseParId(id, (err, course) => {
          console.log("Erreur SQL :", err);
     console.log("course :", course);
 

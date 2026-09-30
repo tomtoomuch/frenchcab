@@ -213,3 +213,24 @@ Points d'attention
 Incohérences entre colonnes et tables sql -> ajouter les quelques colonnes manquantes dans la table "trajets" et  s'assurer de la présence du champ `uid_trajet` qui est un identifiant unique auutoincrémenté et fait office de clé primaire.
 
 
+Congestion surcharge : 
+
+##Backend Node.js
+
+### routes
+GET http://localhost:3001/api/courses = toute les courses (pagination a 100 première course sinon crash car trop de course)
+
+résultat docker: 
+conteneur-back  | App connecté sur le port 3001
+conteneur-back  |  Connexion réussie à la base SQLite (frenchcab.db) !
+conteneur-back  | Erreur SQL : null
+conteneur-back  | Nombre de courses : 100
+
+GET http://localhost:3001/api/courseID?id=1 = course par ID
+
+## connexion db 
+
+fichié connexion.js pour ce connecter à la db pas d'identifiant ou mdp pour ce connecter car c'est une db sqlite3
+
+// Cible le dossier 'data' puis le fichier 'french.db' depuis l'emplacement de ce fichier
+const dbPath = path.resolve(__dirname, 'frenchcab.db'); changer le nom selon votre bdd
