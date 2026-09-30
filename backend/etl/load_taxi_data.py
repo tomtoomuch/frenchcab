@@ -32,7 +32,7 @@ def connect(db_path: Path) -> sqlite3.Connection:
 
 
 def table_columns(conn: sqlite3.Connection, table: str) -> list[str]:
-    cols = [row[1] for row in conn.execute(f"progma table_info({table})")]
+    cols = [row[1] for row in conn.execute(f"pragma table_info({table})")]
     if not cols:
         raise RuntimeError(f"La table '{table}' n'existe pas dans la base")
     return cols
