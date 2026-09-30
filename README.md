@@ -168,35 +168,31 @@ backend/data/clean/
 
 11. **Doublons**
 
-Est considérée 'doublon' une ligne qui est identique à une autre dans l'échantillon de donnéees traité.
+Est considéré 'doublon' une ligne qui est identique à une autre dans l'échantillon de donnéees traité.
 
-double envoi
+![ATTENTION] Deux valeurs sont vidées sans supprimer la course : 
+    * passenger_count = 0
+    * RatecodeID = 99 
+Ils deviennent « inconnu » (case vide).
 
-deux valeurs sont vidées sans supprimer la course : passenger_count = 0 et RatecodeID = 99 deviennent « inconnu » (case vide).
-fichiers produits
-
-deux fichiers arrivent dans backend/data/clean/ 
-
-• yellow_tripdata_2023.csv   les courses propres, 23 colonnes (les 19 du dictionnaire + 4 ajoutées). il peut peser plusieurs Go ,vérifier l'espace disque
-• rapport_extraction_2023.json  lignes lues, gardées, rejetées, taux de rejet et détail par motif.
+Deux fichiers sont écrits dans backend/data/clean/
+    * yellow_tripdata_2023.csv   les courses propres, 23 colonnes (les 19 du dictionnaire + 4 ajoutées). il peut peser plusieurs Go ,vérifier l'espace disque
+    * rapport_extraction_2023.json  lignes lues, gardées, rejetées, taux de rejet et détail par motif.
 
 
-Colonne ajoutée
+#### Colonnes ajoutées
 
-cbd_congestion_fee
+**cbd_congestion_fee**
 0 pour 2023 (taxe créée le 5 janvier 2025), gardée pour un schéma identique d'une année à l'autre
-trip_duration_min
+**trip_duration_min**
 durée de la course en minutes
-
-pickup_hour
-
+**pickup_hour**
 heure de départ (0–23)
 
-pickup_weekday
-
+**pickup_weekday**
 jour de départ (0 = lundi, 6 = dimanche)
 
-Points d'attention
+![ATTENTION]
  Remboursements--- une annulation apparaît en deux lignes, une négative et une positive. La négative est retirée, la positive reste : la course compte donc une fois alors qu'elle a été remboursée
 
 • doublons --- ils ne sont détectés qu'à l'intérieur d'un même morceau , deux lignes identiques dans deux morceaux différents
@@ -212,14 +208,13 @@ Points d'attention
 Incohérences entre colonnes et tables sql -> ajouter les quelques colonnes manquantes dans la table "trajets" et  s'assurer de la présence du champ `uid_trajet` qui est un identifiant unique auutoincrémenté et fait office de clé primaire.
 
 
-Congestion surcharge : 
-
-##Backend Node.js
+## Backend Node.js
 
 ### routes
-GET http://localhost:3001/api/courses = toute les courses (pagination a 100 première course sinon crash car trop de course)
 
-résultat docker: 
+GET http://localhost:3001/api/courses = toutes les courses (pagination a 100 première course sinon crash car trop de course)
+
+Résultat docker : 
 conteneur-back  | App connecté sur le port 3001
 conteneur-back  |  Connexion réussie à la base SQLite (frenchcab.db) !
 conteneur-back  | Erreur SQL : null
