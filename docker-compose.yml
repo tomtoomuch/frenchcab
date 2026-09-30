@@ -5,10 +5,10 @@ services:
     container_name: conteneur-back
     ports:
       - "3001:3001"
-    #volumes:
-      #- ./backend:/app
-      # Garantit que Docker synchronise correctement le dossier de la DB
-      #- ./backend/data:/app/data  
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./backend/data:/app/data 
     restart: always
 
   frontend:

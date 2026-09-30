@@ -1,23 +1,21 @@
 const express = require('express');
-const app = express()
-const port = 3001
-const cors = require('cors'); // 1. Importer le module CORS
+const app = express();
+const port = 3001;
+const cors = require('cors');
+const courseRoute = require('./mvc/Route/courseRoute.js');
 
-
-// 2. Autoriser uniquement votre frontend Angular
 app.use(cors({
   origin: 'http://localhost:4200'
 }));
 
-// Permet à Express de lire le JSON envoyé par Angular dans le body des requêtes
-app.use(express.json()); 
-
-
+app.use(express.json());
 
 app.get('/hello', (req, res) => {
-  res.send('Hello World!')
-})
+  res.send('Hello World!');
+});
+
+app.use('/api', courseRoute);
 
 app.listen(port, () => {
-  console.log(`App connecté sur le port  ${port}`)
-})
+  console.log(`App connecté sur le port ${port}`);
+});

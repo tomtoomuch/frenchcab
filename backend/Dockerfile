@@ -1,12 +1,13 @@
-FROM node:22-alpine
+FROM node:22
 
 WORKDIR /app
 
+COPY package*.json ./
+
+RUN npm install --build-from-source=sqlite3
 
 COPY . .
 
-RUN npm install
-
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["npm", "run", "start"]
