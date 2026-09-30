@@ -33,25 +33,24 @@ router.get('/courseID', (req,res) => {
     });
 });
 
-router.get('/courses', (req,res) => {
-
-    courseModel.trouverCourse((err, course) => {
-         console.log("Erreur SQL :", err);
-    console.log("course :", course);
-
+router.get('/courses', (req, res) => {
+    const limit = Number(req.query.limit) || 100;
+    const offset = Number(req.query.offset) || 0;
+    courseModel.trouverCourse(limit, offset, (err, course) => {
+        console.log("Erreur SQL :", err);
+        console.log("Nombre de courses :", course?.length);
         if (err) {
             return res.status(500).json({
                 success: false,
                 error: err.message
             });
         }
-
         return res.status(200).json({
-            "courses" : course
+            courses: course,
+            limit,
+            offset
         });
-
     });
-
 });
 
 
