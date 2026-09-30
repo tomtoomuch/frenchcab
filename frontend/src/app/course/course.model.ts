@@ -1,21 +1,14 @@
 export interface CourseModel {
-  id: string;
-  version: string;
-  created_at: string;
-  updated_at: string;
-
-  vendorid: string;
+  VendorID: number;
   tpep_pickup_datetime: string;
   tpep_dropoff_datetime: string;
-  passenger_count: number;
+  passenger_count: number | null;
   trip_distance: number;
-  ratecodeid: string;
-  store_and_fwd_flag: string;
-
-  pulocationid: string;
-  dolocationid: string;
-  payment_type: string;
-
+  RatecodeID: number | null;
+  store_and_fwd_flag: number | null;
+  PULocationID: number;
+  DOLocationID: number;
+  payment_type: number;
   fare_amount: number;
   extra: number;
   mta_tax: number;
@@ -25,4 +18,14 @@ export interface CourseModel {
   total_amount: number;
   congestion_surcharge: number;
   airport_fee: number;
+  cbd_congestion_fee: number;
+  trip_duration_min: number;
+  pickup_hour: number;
+  pickup_weekday: number;
+}
+
+export interface CoursesResponse {
+  courses: CourseModel[];
+  limit: number;
+  offset: number;
 }
