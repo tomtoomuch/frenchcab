@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
 // Cible le dossier 'data' puis le fichier 'french.db' depuis l'emplacement de ce fichier
-const dbPath = path.resolve(__dirname, 'frenchcab.db');
+const dbPath = path.resolve(__dirname, 'data', 'frenchcab.db');
 
 const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE, (err) => {
   if (err) {
