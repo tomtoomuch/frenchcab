@@ -1,4 +1,4 @@
-const bdd = require('../../data/connexion.js');
+const bdd = require('../../connexion.js');
 
 function trouverCourseParId(id, callback) {
     bdd.get(
