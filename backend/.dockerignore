@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+.env.*
+dist
+coverage
+*.log
+.DS_Store
+
+data/clean
+data/*.csv
+data/*.parquet
