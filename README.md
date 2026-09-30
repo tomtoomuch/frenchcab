@@ -127,49 +127,48 @@ backend/data/clean/
 2. le script normalise :
     * les noms repassent au format du dictionnaire TLC (vendorid → VendorID, pulocationid → PULocationID…),
     * les dates deviennent des dates,
-    * les codes des entiers,
-    * les montants des décimaux
+    * les codes convertis en entiers,
+    * les montants sont convertis en décimaux
 
 3. le script filtre ; les lignes aberrantes sont comptées puis retirées.
 
-4. le script écrit ; une première écriture crée le fichier avec les ent^tes de colonnes, chaque enreggistrement s'ajoute ensuite à la fin
+4. le script écrit ; une première écriture crée le fichier avec les ent^tes de colonnes, chaque enregistrement s'ajoute ensuite à la fin du dataframe
 
-règles de nettoyage
+##### Règles de nettoyage
 
-date_invalide
-date de départ ou d'arrivée illisible
-impossible de calculer la durée
-hors_annee
-départ hors de 2023
-l'export contient des courses du 31/12/2022
-duree_negative_ou_nulle
-arrivée avant ou à l'heure du départ
-erreur de compteur
-duree_sup_6h
-course de plus de 6 h
-compteur resté allumé (vu : 23 h pour 1,2 mile)
-distance_nulle_ou_aberrante
-distance ≤ 0 ou > 200 miles
-distance non enregistrée
-montant_negatif_ou_nul
-tarif ou total ≤ 0
-lignes d'annulation ou de remboursement
-montant_aberrant
-total > 1 000 $
-saisie erronée
-vendor_inconnu
-VendorID hors 1, 2, 6, 7
-code absent du dictionnaire
-ratecode_invalide
-RatecodeID hors 1–6 et 99
-code absent du dictionnaire
-payment_type_invalide
-payment_type hors 0–6
-code absent du dictionnaire
+1. **date_invalide**
+    * Date de départ ou d'arrivée illisible.
+    * Impossible de calculer la durée.
+2. **hors_annee**
+    * Départ hors de 2023 _(l'export contient des courses du 31/12/2022)_
+3. **duree_negative_ou_nulle**
+    * Arrivée avant ou à l'heure du départ.
+    * Erreur de compteur.
+4. **duree_sup_6h**
+    * Course de plus de 6 h.
+    * Compteur resté allumé _(vu : 23 h pour 1,2 mile)_.
+5. **distance_nulle_ou_aberrante**
+    * Distance ≤ 0 ou > 200 miles.
+    * Distance non enregistrée.
+6. **montant_negatif_ou_nul**
+    * Tarif ou total ≤ 0.
+    * Lignes d'annulation ou de remboursement.
+7. **montant_aberrant**
+    * Total > 1 000 $.
+    * Saisie erronée.
+8. **vendor_inconnu**
+    * VendorID hors 1, 2, 6, 7.
+    * Code absent du dictionnaire.
+9. **ratecode_invalide**
+    * RatecodeID hors 1–6 et 99.
+    * Code absent du dictionnaire.
+10. **payment_type_invalide**
+    * payment_type hors 0–6.
+    * Code absent du dictionnaire.
 
-doublon
+11. **Doublons**
 
-ligne identique à une autre du même morceau
+Est considérée 'doublon' une ligne qui est identique à une autre dans l'échantillon de donnéees traité.
 
 double envoi
 
