@@ -1,1 +1,88 @@
-<p> Liste des courses </p>
+<div class="courses-container">
+  <h1>Liste des courses</h1>
+
+  @if (erreur()) {
+    <p style="color: red">{{ erreur() }}</p>
+  }
+
+  @if (chargement()) {
+    <p>Chargement...</p>
+  } @else {
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Départ</th>
+            <th>Arrivée</th>
+            <th>Zone départ</th>
+            <th>Zone arrivée</th>
+            <th>Distance (mi)</th>
+            <th>Durée (min)</th>
+            <th>Passagers</th>
+            <th>Paiement</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (course of courses(); track $index) {
+            <tr>
+              <td>{{ (page() - 1) * limit + $index + 1 }}</td>
+              <td>{{ course.tpep_pickup_datetime }}</td>
+              <td>{{ course.tpep_dropoff_datetime }}</td>
+              <td>{{ course.PULocationID }}</td>
+              <td>{{ course.DOLocationID }}</td>
+              <td>{{ course.trip_distance | number: '1.1-2' }}</td>
+              <td>{{ course.trip_duration_min | number: '1.0-1' }}</td>
+              <td>{{ course.passenger_count ?? '-' }}</td>
+              <td>{{ paiements[course.payment_type] ?? course.payment_type }}</td>
+              <td>{{ course.total_amount | currency: 'USD' }}</td>
+              <td>
+                <button class="details-button" (click)="ouvrirDetails(course)">Détails</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="11">Aucune course trouvée.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <div class="pagination">
+    <button (click)="pagePrecedente()" [disabled]="page() === 1 || chargement()">Précédent</button>
+    <span>Page {{ page() }}</span>
+    <button (click)="pageSuivante()" [disabled]="!pageSuivanteDispo() || chargement()">Suivant</button>
+  </div>
+</div>
+
+@if (courseSelectionnee(); as c) {
+  <div class="modal-overlay" (click)="fermerDetails()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Détails de la course</h2>
+        <button class="close-button" (click)="fermerDetails()">&times;</button>
+      </div>
+
+      <div class="details-grid">
+        <div><strong>Départ</strong><span>{{ c.tpep_pickup_datetime }}</span></div>
+        <div><strong>Arrivée</strong><span>{{ c.tpep_dropoff_datetime }}</span></div>
+        <div><strong>Zone de départ</strong><span>{{ c.PULocationID }}</span></div>
+        <div><strong>Zone d'arrivée</strong><span>{{ c.DOLocationID }}</span></div>
+        <div><strong>Distance</strong><span>{{ c.trip_distance | number: '1.1-2' }} mi</span></div>
+        <div><strong>Durée</strong><span>{{ c.trip_duration_min | number: '1.0-1' }} min</span></div>
+        <div><strong>Passagers</strong><span>{{ c.passenger_count ?? '-' }}</span></div>
+        <div><strong>Paiement</strong><span>{{ paiements[c.payment_type] ?? c.payment_type }}</span></div>
+        <div><strong>Tarif</strong><span>{{ c.fare_amount | currency: 'USD' }}</span></div>
+        <div><strong>Extra</strong><span>{{ c.extra | currency: 'USD' }}</span></div>
+        <div><strong>Taxe MTA</strong><span>{{ c.mta_tax | currency: 'USD' }}</span></div>
+        <div><strong>Pourboire</strong><span>{{ c.tip_amount | currency: 'USD' }}</span></div>
+        <div><strong>Péages</strong><span>{{ c.tolls_amount | currency: 'USD' }}</span></div>
+        <div><strong>Supplément congestion</strong><span>{{ c.congestion_surcharge | currency: 'USD' }}</span></div>
+        <div><strong>Frais aéroport</strong><span>{{ c.airport_fee | currency: 'USD' }}</span></div>
+        <div><strong>Total</strong><span class="total">{{ c.total_amount | currency: 'USD' }}</span></div>
+      </div>
+    </div>
+  </div>
+}
