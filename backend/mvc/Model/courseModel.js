@@ -1,21 +1,9 @@
-const bdd = require("../data/connexion.js");
+const bdd = require('../../connexion.js');
 
 function trouverCourseParId(id, callback) {
-    bdd.query(
+    bdd.get(
         `SELECT * FROM trajets WHERE id_trajet = ?`,
         [id],
-        (err, result) => {
-            if (err) {
-                return callback(err, null);
-            }
-            return callback(null, result[0]);
-        }
-    );
-}
-
-function trouverCourse(callback) {
-    bdd.query(
-        `SELECT * FROM trajets`,
         (err, result) => {
             if (err) {
                 return callback(err, null);
@@ -25,9 +13,20 @@ function trouverCourse(callback) {
     );
 }
 
+function trouverCourse(limit, offset, callback) {
+    bdd.all(
+        `SELECT * FROM trajets LIMIT ? OFFSET ?`,
+        [limit, offset],
+        (err, result) => {
+            if (err) {
+                return callback(err, null);
+            }
+            return callback(null, result);
+        }
+    );
+}
 
 module.exports = {
     trouverCourseParId,
     trouverCourse
-
-}
+};
