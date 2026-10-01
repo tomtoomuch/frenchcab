@@ -16,9 +16,9 @@ DEFAULT_TRAJETS_CSV = BASE_DIR / "data" / "clean" / "yellow_tripdata_2023.csv"
 TABLE_ZONES = "localisations"
 TABLE_TRAJETS = "trajets"
 
-# ordre des colonnes du CSV -> ordre des colonnes de la table localisations
+
 ZONES_CSV_COLS = ["LocationID", "Borough", "Zone", "service_zone"]
-DATE_COLS = ["tpep_pickup_datetime", "tpep_dropoff_datetime"]
+DATE_COLS = ["tpep_pickup_datetime", "tpep_dropoff_datetime", "pickup_hour"]
 
 
 # ------ connexion
@@ -45,7 +45,7 @@ def count(conn: sqlite3.Connection, table: str) -> int:
 # ------------------------------------------------------------ localisations
 
 def load_zones_csv(csv_path: Path) -> pd.DataFrame:
-    # keep_default_na=False : sinon pandas transforme "N/A" (zone 264/265) en NaN
+
     df = pd.read_csv(csv_path, dtype=str, keep_default_na=False)
     df = df[ZONES_CSV_COLS].apply(lambda s: s.str.strip())
     df["LocationID"] = pd.to_numeric(df["LocationID"], errors="coerce").astype("Int64")
@@ -84,27 +84,78 @@ def insert_zones(conn: sqlite3.Connection, csv_path: Path, replace: bool) -> Non
 
 # ------------------------------------------------------------------ trajets
 
+
+TRAJETS_RENAME = {
+    "VendorID": "vendorID",
+    "RatecodeID": "RateCodeID",
+    "PULocationID": "pu_locationID",
+    "DOLocationID": "do_locationID",
+}
+
+# colonnes NOT NULL
+TRAJETS_NOT_NULL = [
+    "vendorID", "tpep_pickup_datetime", "tpep_dropoff_datetime", "passenger_count",
+    "trip_distance", "RateCodeID", "store_and_fwd_flag", "pu_locationID",
+    "do_locationID", "payment_type", "fare_amount", "total_amount",
+]
+
+
+def add_derived_columns(df: pd.DataFrame) -> pd.DataFrame:
+    # 3 nouvelles colonnes sont calculées à partir des 2 dates
+    pickup = df["tpep_pickup_datetime"]
+    dropoff = df["tpep_dropoff_datetime"]
+    df["trip_duration_min"] = ((dropoff - pickup).dt.total_seconds() / 60).round(2)
+    df["pickup_hour"] = pickup.dt.floor("min").dt.strftime("%H:%M:%S")   # 10:32:47 -> "10:32:00"
+    df["pickup_weekday"] = pickup.dt.dayofweek.astype("Int64")  # 0 = lundi ... 6 = dimanche
+    return df
+
+
+def prepare_trajets(chunk: pd.DataFrame, db_cols: list[str]) -> tuple[pd.DataFrame, int]:
+    df = chunk.rename(columns=TRAJETS_RENAME)
+    df = add_derived_columns(df)
+
+    # extraction.py met "inconnu" (vide) à la place de 0 et 99 : on remet les codes
+    df["passenger_count"] = df["passenger_count"].fillna(0)
+    df["RateCodeID"] = df["RateCodeID"].fillna(99)
+
+    # les lignes qui ont encore un vide dans une colonne obligatoire sont écartées
+    before = len(df)
+    df = df.dropna(subset=TRAJETS_NOT_NULL)
+    dropped = before - len(df)
+
+    # on garde seulement les colonnes qui existent dans la table (uid_trajet est auto)
+    df = df[[c for c in db_cols if c in df.columns]]
+    return df, dropped
+
+
 def insert_trajets(conn: sqlite3.Connection, csv_path: Path, mode: str,
                    chunksize: int) -> None:
     if not csv_path.exists():
         raise FileNotFoundError(f"CSV introuvable : {csv_path} (lancer extraction.py avant)")
 
+    db_cols = table_columns(conn, TABLE_TRAJETS)
+
     t0 = time.time()
-    total = 0
+    total = dropped_total = 0
     # lecture par morceaux : le CSV fait plusieurs millions de lignes
     reader = pd.read_csv(csv_path, sep=",", encoding="utf-8-sig",
                          chunksize=chunksize, parse_dates=DATE_COLS)
     with conn:
-        for i, chunk in enumerate(reader, 1):
-            # 1er morceau : "replace" recrée la table ; ensuite on ajoute
-            if_exists = mode if i == 1 else "append"
-            chunk.to_sql(TABLE_TRAJETS, conn, if_exists=if_exists,
-                         index=False, chunksize=10_000)
-            total += len(chunk)
-            print(f"[{TABLE_TRAJETS}] chunk {i:>4} | insérées {total:>12,} "
-                  f"| {time.time() - t0:6.0f}s", flush=True)
+        if mode == "replace":
+            # on vide la table SANS la supprimer : on garde le schéma
+            # (clé primaire, NOT NULL, clés étrangères)
+            conn.execute(f"DELETE FROM {TABLE_TRAJETS}")
 
-    print(f"[{TABLE_TRAJETS}] {total:,} lignes envoyées, "
+        for i, chunk in enumerate(reader, 1):
+            df, dropped = prepare_trajets(chunk, db_cols)
+            df.to_sql(TABLE_TRAJETS, conn, if_exists="append",
+                      index=False, chunksize=10_000)
+            total += len(df)
+            dropped_total += dropped
+            print(f"[{TABLE_TRAJETS}] chunk {i:>4} | insérées {total:>12,} "
+                  f"| écartées {dropped_total:>8,} | {time.time() - t0:6.0f}s", flush=True)
+
+    print(f"[{TABLE_TRAJETS}] {total:,} lignes envoyées, {dropped_total:,} écartées, "
           f"{count(conn, TABLE_TRAJETS):,} lignes dans la table")
 
 
@@ -120,7 +171,7 @@ def main() -> None:
     p.add_argument("--replace-zones", action="store_true",
                    help="écraser les zones existantes (sinon on les ignore)")
     p.add_argument("--trajets-mode", choices=["replace", "append"], default="replace",
-                   help="replace = recrée la table trajets, append = ajoute à la fin")
+                   help="replace = vide la table trajets avant, append = ajoute à la fin")
     p.add_argument("--chunksize", type=int, default=500_000)
     a = p.parse_args()
 
