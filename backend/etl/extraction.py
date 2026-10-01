@@ -78,7 +78,7 @@ def transform(df: pd.DataFrame) -> pd.DataFrame:
     df["trip_duration_min"] = (
         (df["tpep_dropoff_datetime"] - df["tpep_pickup_datetime"]).dt.total_seconds() / 60
     ).round(2)
-    df["pickup_hour"] = df["tpep_pickup_datetime"].dt.hour.astype("Int64")
+    df["pickup_hour"] = df["tpep_pickup_datetime"].dt.floor("min")
     df["pickup_weekday"] = df["tpep_pickup_datetime"].dt.dayofweek.astype("Int64")
     return df
 
