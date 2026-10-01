@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
+
+    "test": "ng test && vitest run --environment jsdom",
     "serve:ssr:front-end": "node dist/front-end/server/server.mjs"
   },
   "private": true,
@@ -30,9 +31,9 @@
     "@angular/compiler-cli": "^22.2.0",
     "@types/express": "^5.0.1",
     "@types/node": "^22.12.0",
-    "jsdom": "^30.0.0",
+    "jsdom": "^30.1.1",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.2"
   }
 }
