@@ -5,7 +5,7 @@ const cors = require('cors');
 const courseRoute = require('./mvc/Route/courseRoute.js');
 
 app.use(cors({
-  origin: 'http://localhost:4200'
+  origin: 'http://conteneur-front:4200'
 }));
 
 app.use(express.json());

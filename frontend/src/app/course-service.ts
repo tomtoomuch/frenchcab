@@ -6,7 +6,7 @@ import { CoursesResponse } from './course/course.model';
 @Injectable({ providedIn: 'root' })
 export class CourseService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3001/api/courses';
+  private apiUrl = 'http://conteneur-back:3001/api/courses';
 
   getCourses(page: number, limit: number): Observable<CoursesResponse> {
     const params = new HttpParams()
