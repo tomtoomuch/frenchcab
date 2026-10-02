@@ -6,3 +6,5 @@ backend/data/frenchcab.db
 backend/data/fichier_creation_bdd.sql
 backend/data/query.zip
 backend/data/query/**
+__pycache__/
+*.pyc

@@ -4,9 +4,9 @@ const port = 3001;
 const cors = require('cors');
 const courseRoute = require('./mvc/Route/courseRoute.js');
 
-app.use(cors({
-  origin: 'http://conteneur-front:4200'
-}));
+
+app.use(cors({ origin: ['http://localhost:4200', 'https://g1.valentinduflot.fr']}));
+
 
 app.use(express.json());
 
