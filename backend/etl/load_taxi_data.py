@@ -120,13 +120,79 @@ ZONES_CSV_COLS = ["LocationID", "Borough", "Zone", "service_zone"]
 DATE_COLS = ["tpep_pickup_datetime", "tpep_dropoff_datetime", "pickup_hour"]
 
 
-# ------ connexion
+# ------ schéma : les tables sont créées si elles n'existent pas
+
+SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS localisations (
+    locationID INTEGER PRIMARY KEY,
+    quartier TEXT NOT NULL,
+    zone TEXT NOT NULL,
+    zone_service TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS trajets (
+    uid_trajet INTEGER PRIMARY KEY,
+    vendorID INTEGER NOT NULL,
+    tpep_pickup_datetime DATETIME NOT NULL,
+    tpep_dropoff_datetime DATETIME NOT NULL,
+    passenger_count INTEGER NOT NULL,
+    trip_distance REAL NOT NULL,
+    RateCodeID INTEGER NOT NULL,
+    store_and_fwd_flag INTEGER NOT NULL,
+    pu_locationID INTEGER NOT NULL,
+    do_locationID INTEGER NOT NULL,
+    payment_type INTEGER NOT NULL,
+    fare_amount REAL NOT NULL,
+    extra REAL,
+    mta_tax REAL,
+    tip_amount REAL,
+    tolls_amount REAL,
+    improvement_surcharge REAL,
+    total_amount REAL NOT NULL,
+    congestion_surcharge REAL,
+    airport_fee REAL,
+    cbd_congestion_fee REAL,
+    trip_duration_min REAL,
+    pickup_hour INTEGER,
+    pickup_weekday INTEGER,
+    FOREIGN KEY (pu_locationID) REFERENCES localisations(locationID),
+    FOREIGN KEY (do_locationID) REFERENCES localisations(locationID)
+);
+"""
+
+
+# ------ connexion (vérification ou création de la base)
 
 def connect(db_path: Path) -> sqlite3.Connection:
-    if not db_path.exists():
-        raise FileNotFoundError(f"Base introuvable : {db_path}")
-    conn = sqlite3.connect(db_path)
+
+    if db_path.exists():
+        print(f"base trouvée : {db_path}")
+    else:
+        print(f"base absente -> création de {db_path}")
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+
+    conn = sqlite3.connect(db_path)  # crée le fichier s'il n'existe pas
     conn.execute("PRAGMA foreign_keys = ON")
+
+
+    tables = {r[0] for r in conn.execute(
+        "SELECT name FROM sqlite_master WHERE type = 'table'")}
+    manquantes = {TABLE_ZONES, TABLE_TRAJETS} - tables
+    if manquantes:
+        print(f"tables absentes {sorted(manquantes)} -> création")
+        conn.executescript(SCHEMA_SQL)
+    else:
+        print("tables déjà présentes -> on continue")
+
+
+    cols = table_columns(conn, TABLE_TRAJETS)
+    absentes = [c for c in TRAJETS_NOT_NULL if c not in cols]
+    if absentes:
+        conn.close()
+        raise RuntimeError(
+            f"la table {TABLE_TRAJETS} n'a pas les bonnes colonnes : {absentes}\n"
+            f"colonnes trouvées : {cols}\n"
+            f"-> renommer (ALTER TABLE ... RENAME COLUMN) ou supprimer la base et relancer")
     return conn
 
 
@@ -141,7 +207,7 @@ def count(conn: sqlite3.Connection, table: str) -> int:
     return conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
 
 
-# ------------------------------------------------------------ localisations
+# ---------------- localisations
 
 def load_zones_csv(csv_path: Path) -> pd.DataFrame:
 
@@ -351,7 +417,7 @@ def main() -> None:
     p.add_argument("--chunksize", type=int, default=500_000)
     a = p.parse_args()
 
-    conn = connect(a.db)
+    conn = connect(a.db)  # vérifie la base, ou la crée avec ses tables
     try:
         if a.only in (None, "localisations"):
             insert_zones(conn, a.zones_csv, a.replace_zones)
