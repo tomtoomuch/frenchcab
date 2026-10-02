@@ -87,7 +87,7 @@ python Taxi_PichkupHour.py 2000000          # échantillon plus grand (0 = toute
 python Taxi_PichkupHour.py --sans-distance  # seulement les zones et l'heure
 ```
 
-## 2. La prédiction — `taxi_duree_prediction.py.py`
+## 2. La prédiction — `taxi_duree_prediction.py`
 
 Ce fichier **utilise** le modèle déjà entraîné. Il ne réentraîne rien
 
