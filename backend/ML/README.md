@@ -40,8 +40,8 @@ Comme la réponse est un nombre, c'est une **régression**
 - **X** (les variables, ou *features*) : ce qu'on donne au modèle
 - **y** (la cible) : `trip_duration_min`, déjà calculée par l'ETL (`load_taxi_data.py`)
 
-### Les étapes
-
+### Les étapes |
+|---|---|---|
 | 1. Charger | `charger_donnees()`
 | 2. Nettoyer | `nettoyer()`
 | 3. Variables | `construire_variables()` | Crée `heure` et `est_weekend`, ainsi que la paire de zones `trajet_zones` (ex. `"161_236"`)
@@ -51,9 +51,8 @@ Comme la réponse est un nombre, c'est une **régression**
 | 7. Évaluer | `evaluer()` | Calcule MAE, RMSE et R², et l'importance de chaque variable |
 | 8. Sauvegarder | `joblib.dump` | Écrit le fichier `modele_duree_trajet.joblib` |
 
-### Les variables utilisées
-
-
+### Les variables utilisées |
+|---|---|---|
 | Nombres | `trip_distance`, `heure`, `pickup_weekday`, `est_weekend`, `passenger_count` | Utilisées telles quelles |
 | Peu de catégories | `quartier_dep/arr`, `zone_service_dep/arr`, `RateCodeID`, `vendorID` | **OneHotEncoder** : une colonne 0/1 par valeur |
 | Beaucoup de catégories | `pu_locationID`, `do_locationID`, `trajet_zones` | **TargetEncoder** : chaque zone est remplacée par la durée moyenne de ses courses |
@@ -92,6 +91,7 @@ python Taxi_PichkupHour.py --sans-distance  # seulement les zones et l'heure
 Ce fichier **utilise** le modèle déjà entraîné. Il ne réentraîne rien
 
 | Fonction | Rôle |
+|---|---|---|
 | `charger_modele()` | Ouvre `modele_duree_trajet.joblib` |
 | `charger_courses(db, [uid])` | `SELECT ... FROM trajets WHERE uid_trajet IN (...)`, puis la jointure avec `localisations` |
 | `predire(modele, df)` | Applique `construire_variables()` (**la même** fonction qu'à l'entraînement), puis `modele.predict()` |
@@ -133,7 +133,7 @@ GET /api/prediction/{uid_trajet}
 ```
 
 | Partie du code | Rôle |
-
+|---|---|---|
 | `app = FastAPI(...)` | Crée l'application web |
 | `http://localhost:4200"` | Autorise Angular (port 4200) à appeler l'API (port 8000) |
 |  Le modèle est chargé **une seule fois**, au démarrage, et pas à chaque requête |
