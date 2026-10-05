@@ -79,10 +79,22 @@ jobs:
           curl --fail http://localhost:3001/hello/
          
 
-      # 10. Tester le frontend
+      # 10. Tester le frontend 
       - name: 10. Tester le frontend
         run: |
-          curl --fail http://localhost:4200/
+          for i in $(seq 1 30); do
+            if curl --fail http://localhost:4200/ ; then
+              echo "Frontend disponible !"
+              exit 0
+            fi
+
+            echo "Attente du frontend..."
+            sleep 1
+          done
+
+          echo "Le frontend ne répond pas"
+          docker compose logs frontend
+          exit 1
 
       # 11. Afficher les logs en cas de problème
       - name: 11. Afficher les logs
