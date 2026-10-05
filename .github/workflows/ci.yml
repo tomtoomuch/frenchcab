@@ -82,7 +82,7 @@ jobs:
       # 10. Tester le frontend
       - name: 10. Tester le frontend
         run: |
-          curl --fail http://localhost:80/
+          curl --fail http://localhost:4200/
 
       # 11. Afficher les logs en cas de problème
       - name: 11. Afficher les logs
