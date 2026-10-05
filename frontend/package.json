@@ -4,12 +4,13 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
 
     "test": "ng test && vitest run --environment jsdom",
     "serve:ssr:front-end": "node dist/front-end/server/server.mjs"
   },
+  
   "private": true,
   "packageManager": "npm@11.13.0",
   "dependencies": {
