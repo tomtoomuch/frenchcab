@@ -150,6 +150,14 @@ Création du `raport_2023.json` et du fichier `yellow_tripdata_2023`
 3. Initialiser la bdd et importer les données
 Lancer le fichier `load_taxi_data.py` qui va créer la base de donnée `frenchcab.db`.
 
+## VM
+
+Pour lancer la VM `groupe1@{numéro api}` et écrire le mot de passe. Pour ces informations voir le fichier txt envoyé par le goupe précédent.
+
+## Lancer le front
+
+Pour lancer le frontend faire un push sur la branch `dev`, puis ouvrir sur internet `https://g1.valentinduflot.fr/`.
+
 ##### Étapes du traitement
 
 1. le script lit les **19 colonnes** ; les 4 colonnes techniques du portail (id, version, created_at, updated_at) sont ignorées.
