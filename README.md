@@ -47,6 +47,27 @@ Par exemple :
 
 [Ensemble des règles de contribution du projet](./CONTRIBUTING.md)
 
+## Démarrage du projet
+
+### Github
+
+Cloner le repo :
+```
+https://github.com/tomtoomuch/frenchcab.git
+```
+Demander l'accès en tant que contributeur au propriétaire `tomtoomuch`.
+
+### Docker
+
+Importer les images du dockerhub
+```
+docker compose pull
+```
+Puis lancer les conteners
+```
+docker compose up
+```
+
 ## Dictionnaire de données
 
 | Nom de champ          | Description                                                                                                                                                                                                                                                   | Type                             |
@@ -108,17 +129,26 @@ Cette bibliothèque permet de compter les occurrences de chaque élément d'une 
 
 #### Fonctionnement de l'extraction
 
+1. Télécharger les données
+
 Le fichier de données brutes téléchargées depuis [le portail de données ouvertes de la ville de New York](https://data.cityofnewyork.us/Transportation/2023-Yellow-Taxi-Trip-Data/4b4i-vvec/about_data)
+
+Les données sont ensuite importées dans deux CSV  : `query.csv` et `taxi_zone_lookup.csv`.
 
 ```bash
 backend/data/query.csv
 ```
 
-Les données sont ensuite stockées dans un CSV 
+2. Extraire les données
 
+Lancer le fichier `extraction.py`
 ```bash
 backend/data/clean/
 ```
+Création du `raport_2023.json` et du fichier `yellow_tripdata_2023`
+
+3. Initialiser la bdd et importer les données
+Lancer le fichier `load_taxi_data.py` qui va créer la base de donnée `frenchcab.db`.
 
 ##### Étapes du traitement
 
