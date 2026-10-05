@@ -14,13 +14,13 @@ app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:4200"],
 modele = charger_modele(CHEMIN_MODELE)
 
 
-@app.get("/api/prediction/{uid_trajet}")
-def prediction_par_uid(uid_trajet: int) -> dict:
+@app.get("/api/prediction/{pu_locationID}{do_locationID}")
+def prediction_par_location(pu_locationID: int, do_locationID) -> dict:
     # 1. chercher la course dans la base
     try:
-        df = charger_courses(DEFAULT_DB, [uid_trajet])
+        df = charger_courses(DEFAULT_DB, [pu_locationID],[do_locationID])
     except ValueError:
-        raise HTTPException(status_code=404, detail=f"course {uid_trajet} introuvable")
+        raise HTTPException(status_code=404, detail=f"course de {pu_locationID} à {do_locationID} introuvable")
 
     # 2. prédire
     df = predire(modele, df)

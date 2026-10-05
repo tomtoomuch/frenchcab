@@ -18,12 +18,13 @@ def charger_modele(chemin: Path) -> object:
     return joblib.load(chemin)
 
 
-def charger_courses(db_path: Path, uids: list[int]) -> pd.DataFrame:
+def charger_courses(db_path: Path, pu_locationID: list[int], do_locationID:list[int] ) -> pd.DataFrame:
     # lit les courses demandées + la table des zones
     if not db_path.exists():
         raise FileNotFoundError(f"Base introuvable  {db_path}")
 
-    liste = ",".join(str(u) for u in uids)
+    liste_pu = ",".join(str(u) for u in pu_locationID)
+    liste_do = ','.join(str(u) for u in do_locationID)
     with sqlite3.connect(db_path) as conn:
         courses = pd.read_sql_query(f"""
              SELECT uid_trajet,
@@ -38,12 +39,13 @@ def charger_courses(db_path: Path, uids: list[int]) -> pd.DataFrame:
                     pu_locationID,
                     do_locationID
              FROM {TABLE_TRAJETS}
-             WHERE uid_trajet IN ({liste})
+             WHERE pu_locationID IN ({liste_pu})
+             AND do_locationID IN ({liste_do})
          """, conn)
         lieux = pd.read_sql_query(f"SELECT * FROM {TABLE_ZONES}", conn)
 
     if courses.empty:
-        raise ValueError(f"aucune course trouvée pour uid_trajet {liste}")
+        raise ValueError(f"aucune course trouvée pour le trajet {liste_pu} à {liste_do}")
 
     lieux.columns = NOMS_ZONES
 
@@ -76,10 +78,10 @@ def afficher(df: pd.DataFrame) -> None:
               f"-> {c['quartier_arr']}/{c['zone_arr']}/{c['zone_service_arr']}")
 
 
-def prediction(id_trajet: int, db_path: Path = DEFAULT_DB) -> float:
+def prediction(pu_locationID: int, do_locationID: int, db_path: Path = DEFAULT_DB) -> float:
     # prédit la durée de la course id_trajet et affiche le résultat
     modele = charger_modele(CHEMIN_MODELE)
-    df = charger_courses(db_path, [id_trajet])
+    df = charger_courses(db_path, [pu_locationID], [do_locationID])
     df = predire(modele, df)
     afficher(df)
     return float(df["duree_predite"].iloc[0])
