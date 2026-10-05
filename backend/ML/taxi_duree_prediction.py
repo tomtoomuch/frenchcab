@@ -18,42 +18,43 @@ def charger_modele(chemin: Path) -> object:
     return joblib.load(chemin)
 
 
-def charger_courses(db_path: Path, pu_locationID: list[int], do_locationID:list[int] ) -> pd.DataFrame:
+def charger_courses(db_path: Path, zone_depart: str, zone_arrivee: str) -> pd.DataFrame:
     # lit les courses demandées + la table des zones
     if not db_path.exists():
         raise FileNotFoundError(f"Base introuvable  {db_path}")
 
-    liste_pu = ",".join(str(u) for u in pu_locationID)
-    liste_do = ','.join(str(u) for u in do_locationID)
     with sqlite3.connect(db_path) as conn:
         courses = pd.read_sql_query(f"""
-             SELECT uid_trajet,
-                    tpep_pickup_datetime,
-                    trip_duration_min,
-                    trip_distance,
-                    pickup_hour,
-                    pickup_weekday,
-                    passenger_count,
-                    RateCodeID,
-                    vendorID,
-                    pu_locationID,
-                    do_locationID
-             FROM {TABLE_TRAJETS}
-             WHERE pu_locationID IN ({liste_pu})
-             AND do_locationID IN ({liste_do})
-         """, conn)
-        lieux = pd.read_sql_query(f"SELECT * FROM {TABLE_ZONES}", conn)
+             SELECT trajets.uid_trajet,
+                    trajets.tpep_pickup_datetime,
+                    trajets.trip_duration_min,
+                    trajets.trip_distance,
+                    trajets.pickup_hour,
+                    trajets.pickup_weekday,
+                    trajets.passenger_count,
+                    trajets.RateCodeID,
+                    trajets.vendorID,
+                    trajets.pu_locationID,
+                    trajets.do_locationID,
+                    localisations_pu.zone AS zone_depart,
+                    localisations_do.zone AS zone_arrivee
+             FROM trajets
 
-    if courses.empty:
-        raise ValueError(f"aucune course trouvée pour le trajet {liste_pu} à {liste_do}")
+            LEFT JOIN localisations AS localisations_pu
+                ON trajets.pu_locationID = localisations_pu.locationID
 
-    lieux.columns = NOMS_ZONES
+            LEFT JOIN localisations AS localisations_do
+                ON trajets.do_locationID = localisations_do.locationID
 
-    # jointure, deux fois départ puis arrivée
-    df = courses.merge(lieux.add_suffix("_dep"), how="left",
-                       left_on="pu_locationID", right_on="locationID_dep")
-    df = df.merge(lieux.add_suffix("_arr"), how="left",
-                  left_on="do_locationID", right_on="locationID_arr")
+            WHERE localisations_pu.zone = ?
+              AND localisations_do.zone = ?
+        """, conn, params=(zone_depart, zone_arrivee))
+
+        if courses.empty:
+            raise ValueError(f"Aucune course trouvée de {zone_depart} vers {zone_arrivee}")
+
+        return courses
+    
     return df
 
 
