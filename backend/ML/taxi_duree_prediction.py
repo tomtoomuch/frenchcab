@@ -21,64 +21,6 @@ def charger_modele(chemin: Path) -> object:
 
 
 
-def charger_courses(db_path: Path, zone_depart: str, zone_arrivee: str, tpep_pickup_datetime: date, pickup_hour: time) -> pd.DataFrame:
-
-    if not db_path.exists():
-        raise FileNotFoundError(f"Base introuvable : {db_path}")
-
-    date_str = tpep_pickup_datetime.strftime("%Y-%m-%d")
-    pickup_hour_str = pickup_hour.strftime("%H:%M:%S")
-
-    with sqlite3.connect(db_path) as conn:
-
-        courses = pd.read_sql_query("""
-            SELECT
-                trajets.uid_trajet,
-                trajets.tpep_pickup_datetime,
-                trajets.trip_duration_min,
-                trajets.trip_distance,
-                trajets.pickup_hour,
-                trajets.pickup_weekday,
-                trajets.passenger_count,
-                trajets.RateCodeID,
-                trajets.vendorID,
-                trajets.pu_locationID,
-                trajets.do_locationID,
-
-                localisations_pu.quartier AS quartier_dep,
-                localisations_pu.zone AS zone_dep,
-                localisations_pu.zone_service AS zone_service_dep,
-
-                localisations_do.quartier AS quartier_arr,
-                localisations_do.zone AS zone_arr,
-                localisations_do.zone_service AS zone_service_arr
-
-            FROM trajets
-
-            LEFT JOIN localisations AS localisations_pu
-                ON trajets.pu_locationID = localisations_pu.locationID
-
-            LEFT JOIN localisations AS localisations_do
-                ON trajets.do_locationID = localisations_do.locationID
-
-            WHERE localisations_pu.zone = ?
-              AND localisations_do.zone = ?
-              AND DATE(trajets.tpep_pickup_datetime) = ?
-              AND trajets.pickup_hour = ?
-
-        """, conn, params=(zone_depart, zone_arrivee, date_str, pickup_hour_str)
-        )
-
-    if courses.empty:
-        raise ValueError(
-            f"Aucune course trouvée de {zone_depart} vers {zone_arrivee} "
-            f"le {date_str} à {pickup_hour_str}"
-        )
-
-    return courses
-
-
-
 def construire_course_prediction(db_path: Path, zone_depart: str, zone_arrivee: str, date_depart: date, heure_depart: time) -> pd.DataFrame:
 
     if not db_path.exists():
@@ -95,7 +37,6 @@ def construire_course_prediction(db_path: Path, zone_depart: str, zone_arrivee: 
                 zone_service
             FROM localisations
             WHERE zone = ?
-            LIMIT 1
             """,
             conn,
             params=(zone_depart,)
@@ -110,28 +51,50 @@ def construire_course_prediction(db_path: Path, zone_depart: str, zone_arrivee: 
                 zone_service
             FROM localisations
             WHERE zone = ?
-            LIMIT 1
             """,
-            conn,
-            params=(zone_arrivee,)
+            conn,params=(zone_arrivee,)
         )
 
-    if depart.empty:
-        raise ValueError(f"Zone de départ '{zone_depart}' introuvable")
+        if depart.empty:
+            raise ValueError(f"Zone de départ inconnue : {zone_depart}")
 
-    if arrivee.empty:
-        raise ValueError(f"Zone d'arrivée '{zone_arrivee}' introuvable")
+        if arrivee.empty:
+            raise ValueError(f"Zone d'arrivée inconnue : {zone_arrivee}")
 
-    dep = depart.iloc[0]
-    arr = arrivee.iloc[0]
+        dep = depart.iloc[0]
+        arr = arrivee.iloc[0]
 
-    datetime_depart = datetime.combine( date_depart, heure_depart)
+        distance = pd.read_sql_query(
+            """
+            SELECT AVG(trip_distance) AS distance_moyenne
+            FROM trajets
+            WHERE pu_locationID = ?
+              AND do_locationID = ?
+              AND trip_distance > 0
+            """,
+            conn,
+            params=(
+                int(dep["locationID"]),
+                int(arr["locationID"])
+            )
+        )
+
+    distance_moyenne = distance.iloc[0]["distance_moyenne"]
+
+    if pd.isna(distance_moyenne):
+        raise ValueError(
+            f"Aucune distance historique disponible pour "
+            f"{zone_depart} vers {zone_arrivee}"
+        )
+
+    datetime_depart = datetime.combine(date_depart, heure_depart)
 
     df = pd.DataFrame([{
         "tpep_pickup_datetime": datetime_depart,
-
         "pickup_hour": heure_depart.strftime("%H:%M:%S"),
         "pickup_weekday": date_depart.weekday(),
+
+        "trip_distance": float(distance_moyenne),
 
         "pu_locationID": int(dep["locationID"]),
         "do_locationID": int(arr["locationID"]),
@@ -146,6 +109,7 @@ def construire_course_prediction(db_path: Path, zone_depart: str, zone_arrivee: 
     }])
 
     return df
+
 
 def predire(modele, df: pd.DataFrame) -> pd.DataFrame:
     # mêmes transformations que pendant l'entraînement
@@ -169,14 +133,20 @@ def afficher(df: pd.DataFrame) -> None:
         )
 
 
-def prediction(zone_depart: str, zone_arrivee: str, tpep_pickup_datetime: date , pickup_hour:time, db_path: Path = DEFAULT_DB) -> float:
+def prediction(zone_depart: str, zone_arrivee: str, date_depart: date , heure_depart:time, db_path: Path = DEFAULT_DB) -> float:
     # prédit la durée de la course id_trajet et affiche le résultat
     modele = charger_modele(CHEMIN_MODELE)
-    df = charger_courses(db_path, zone_depart, zone_arrivee, tpep_pickup_datetime, pickup_hour)
+    df = construire_course_prediction(db_path, zone_depart, zone_arrivee, date_depart, heure_depart)
     df = predire(modele, df)
     afficher(df)
     return float(df["duree_predite"].iloc[0])
 
 
 if __name__ == "__main__":
-    prediction(20)
+
+    prediction(
+        zone_depart="Allerton/Pelham Gardens",
+        zone_arrivee="Battery Park City",
+        date_depart=date(2027, 3, 15),
+        heure_depart=time(10, 0)
+    )
