@@ -397,7 +397,7 @@ Points importants :
 
 ```bash
 cd backend/ML
-python taxi_duree_prediction.py.py      # lance prediction(20)
+python taxi_duree_prediction.py      # lance prediction(20)
 ```
 
 Résultat :
