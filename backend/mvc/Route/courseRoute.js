@@ -53,5 +53,35 @@ router.get('/courses', (req, res) => {
     });
 });
 
+router.post('/prediction', (req, res) => {
+    const locDep = req.query.locDep;
+    const locArr = req.query.locArr;
+    const jour = req.query.jour;
+    const temps = req.query.temps;
+    courseModel.predictionTrajet(locDep, locArr, jour, temps, (err, trajet) => {
+         console.log("Erreur SQL :", err);
+    console.log("trajet :", trajet);
+
+    if (err) {
+        return res.status(500).json({ 
+            success: false,
+            error: err.message
+        });
+    }
+        if (trajet) {
+             return res.status(200).json({
+                trajet,             
+                }
+             );
+        
+        }else {
+             return res.status(404).json({"message":"course non trouvé"})
+        }
+
+            
+    });
+
+});
+
 
 module.exports = router;
