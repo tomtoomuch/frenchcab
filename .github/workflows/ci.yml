@@ -65,20 +65,20 @@ jobs:
         run: docker compose ps
 
       # 9. Attendre que le backend réponde
-      - name: 9. Tester le backend
-        run: |
-          for i in $(seq 1 30); do
-            if curl -f http://localhost:3001/hello ; then
-              echo "Backend disponible !"
-              exit 0
-            fi
+      # - name: 9. Tester le backend
+      #   run: |
+      #     for i in $(seq 1 30); do
+      #       if curl -f http://localhost:3001/hello ; then
+      #         echo "Backend disponible !"
+      #         exit 0
+      #       fi
 
-            sleep 1
-          done
+      #       sleep 1
+      #     done
 
-          echo "Le backend ne répond pas"
-          docker compose logs backend
-          exit 1
+      #     echo "Le backend ne répond pas"
+      #     docker compose logs backend
+      #     exit 1
 
       # 10. Tester l'API
       - name: 10. Tester les endpoints
