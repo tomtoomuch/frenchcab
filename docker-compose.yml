@@ -31,6 +31,14 @@ services:
     volumes:
       - ./backend/data:/app/data
     restart: always
+
+  gateway:
+    image: emfall/frenchcab-gateway:latest
+    build: ./gateway
+    container_name: conteneur-gateway
+    ports:
+      - "3000:3000"
+    restart: always
 volumes:
   frontend:
   backend:
