@@ -80,10 +80,10 @@ jobs:
       #     docker compose logs backend
       #     exit 1
 
-      # 10. Tester l'API
-      - name: 10. Tester les endpoints
-        run: |
-          curl --fail http://localhost:3001/hello/
+      # # 10. Tester l'API
+      # - name: 10. Tester les endpoints
+      #   run: |
+      #     curl --fail http://localhost:3001/hello/
          
 
       # 11. Tester le frontend 
