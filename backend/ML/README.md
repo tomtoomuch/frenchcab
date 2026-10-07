@@ -1,4 +1,114 @@
-# FrenchCab — Prédiction de la durée d'une course de taxi
+# FrenchCab — BACKEND 
+
+## ETL
+
+### /backend/etl/extraction.py
+
+```from __future__ import annotations```
+Cela permet d'utiliser les types de données annotées dans ce script
+
+```import argparse```
+Cette bibliothèque permet de créer un programme commande ligne qui peut recevoir des arguments en ligne de commande
+
+```import json```
+Cette bibliothèque permet de travailler avec du JSON
+
+```import time```
+Cette bibliothèque permet de mesurer le temps d'exécution de certains blocs de code
+
+```from collections import Counter```
+Cette bibliothèque permet de compter les occurrences de chaque élément d'une liste
+
+>python backend/etl/extraction.py --nrows 100000
+
+##### Étapes du traitement
+
+1. le script lit les **19 colonnes** ; les 4 colonnes techniques du portail (id, version, created_at, updated_at) sont ignorées.
+
+2. le script normalise :
+    * les noms repassent au format du dictionnaire TLC (vendorid → VendorID, pulocationid → PULocationID…),
+    * les dates deviennent des dates,
+    * les codes convertis en entiers,
+    * les montants sont convertis en décimaux
+
+3. le script filtre ; les lignes aberrantes sont comptées puis retirées.
+
+4. le script écrit ; une première écriture crée le fichier avec les ent^tes de colonnes, chaque enregistrement s'ajoute ensuite à la fin du dataframe
+
+##### Règles de nettoyage
+
+1. **date_invalide**
+    * Date de départ ou d'arrivée illisible.
+    * Impossible de calculer la durée.
+2. **hors_annee**
+    * Départ hors de 2023 _(l'export contient des courses du 31/12/2022)_
+3. **duree_negative_ou_nulle**
+    * Arrivée avant ou à l'heure du départ.
+    * Erreur de compteur.
+4. **duree_sup_6h**
+    * Course de plus de 6 h.
+    * Compteur resté allumé _(vu : 23 h pour 1,2 mile)_.
+5. **distance_nulle_ou_aberrante**
+    * Distance ≤ 0 ou > 200 miles.
+    * Distance non enregistrée.
+6. **montant_negatif_ou_nul**
+    * Tarif ou total ≤ 0.
+    * Lignes d'annulation ou de remboursement.
+7. **montant_aberrant**
+    * Total > 1 000 $.
+    * Saisie erronée.
+8. **vendor_inconnu**
+    * VendorID hors 1, 2, 6, 7.
+    * Code absent du dictionnaire.
+9. **ratecode_invalide**
+    * RatecodeID hors 1–6 et 99.
+    * Code absent du dictionnaire.
+10. **payment_type_invalide**
+    * payment_type hors 0–6.
+    * Code absent du dictionnaire.
+
+11. **Doublons**
+
+Est considéré 'doublon' une ligne qui est identique à une autre dans l'échantillon de donnéees traité.
+
+![ATTENTION] Deux valeurs sont vidées sans supprimer la course : 
+    * passenger_count = 0
+    * RatecodeID = 99 
+Ils deviennent « inconnu » (case vide).
+
+Deux fichiers sont écrits dans backend/data/clean/
+    * yellow_tripdata_2023.csv   les courses propres, 23 colonnes (les 19 du dictionnaire + 4 ajoutées). il peut peser plusieurs Go ,vérifier l'espace disque
+    * rapport_extraction_2023.json  lignes lues, gardées, rejetées, taux de rejet et détail par motif.
+
+
+#### Colonnes ajoutées
+
+**cbd_congestion_fee**
+0 pour 2023 (taxe créée le 5 janvier 2025), gardée pour un schéma identique d'une année à l'autre
+**trip_duration_min**
+durée de la course en minutes
+**pickup_hour**
+heure de départ (0–23)
+
+**pickup_weekday**
+jour de départ (0 = lundi, 6 = dimanche)
+
+![ATTENTION]
+ Remboursements--- une annulation apparaît en deux lignes, une négative et une positive. La négative est retirée, la positive reste : la course compte donc une fois alors qu'elle a été remboursée
+
+• doublons --- ils ne sont détectés qu'à l'intérieur d'un même morceau , deux lignes identiques dans deux morceaux différents
+• frais d'aéroport, VendorID 1 : pour les courses à l'aéroport, extra semble déjà contenir les 1,25 $ de airport_fee. La somme des colonnes dépasse alors total_amount de 1,25 $ ; se fier à total_amount
+•pourboires en espèces  ----- ils ne sont pas enregistrés ; tip_amount ne concerne que les paiements par carte
+• improvement_surcharge : quelques lignes sont à 0,30 $ au lieu de 1,00 $ (ancien tarif) ; elles sont gardées
+•test le script a été vérifié sur un petit extrait, pas encore sur les 6 Go complets
+
+ lancer d'abord avec --nrows 100000 et relire le rapport    python backend/etl/extraction.py --nrows 100000
+
+ ## Problématiques
+
+Incohérences entre colonnes et tables sql -> ajouter les quelques colonnes manquantes dans la table "trajets" et  s'assurer de la présence du champ `uid_trajet` qui est un identifiant unique auutoincrémenté et fait office de clé primaire.
+
+## Prédiction de la durée d'une course de taxi
 
 Ce module prédit **combien de minutes va durer une course de taxi jaune** (New York, 2023), à partir des informations connues **au moment du départ** : la distance, l'heure, le jour et les zones de départ et d'arrivée
 
