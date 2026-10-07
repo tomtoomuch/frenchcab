@@ -33,3 +33,7 @@ services:
     depends_on:
       - backend
     restart: always
+
+    volumes:
+      frontend:
+      backend:
