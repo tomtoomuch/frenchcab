@@ -39,7 +39,7 @@ jobs:
       - name: 4. Construire le gateway
         run: |
           docker build\
-          -t emfall/frenchcab-gateway:latest \
+           -t emfall/frenchcab-gateway:latest \
           ./gateway
 
       # 5. Construire l'image backend
