@@ -1,7 +1,7 @@
 const axios = require("axios");
 const bdd = require("../../connexion.js");
 
-const PYTHON_SERVICE_URL = "https://api1.valentinduflot.fr";
+const PYTHON_SERVICE_URL = "http://backend:3001";
 
 
 async function getTests() {
@@ -73,19 +73,4 @@ function getCourses(limit, offset) {
 }
 
 
-// -------------------------------------
-// PREDICTION PYTHON
-// -------------------------------------
-
-async function getPrediction(zone_depart, zone_arrivee, date_depart, heure_depart) {
-
-    return axios.get(
-        `${PYTHON_SERVICE_URL}/api/prediction`,
-        {
-            params: {zone_depart, zone_arrivee, date_depart, heure_depart}
-        }
-    );
-}
-
-
-module.exports = {getTests, getTrouverCourseParId, getCourses, getPrediction};
+module.exports = {getTests, getTrouverCourseParId, getCourses};

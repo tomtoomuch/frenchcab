@@ -8,9 +8,12 @@ app.use(cors());
 
 app.use(express.json());
 
-const testRoutes = require("./src/routes/testRoutes");
+const courseRoute = require("./src/routes/courseRoute");
+const predictionRoute = require("./src/routes/predictionRoute");
 
-app.use("/test", testRoutes)
+app.use("/course", courseRoute)
+app.use("/prediction", predictionRoute)
+
 
 app.listen(3000, () => {
   console.log(`Application à l'écoute sur le port 3000!`);

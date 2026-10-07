@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://api1.valentinduflot.fr' 
+  apiBaseUrl: 'http://gateway:3000' 
 
 };
