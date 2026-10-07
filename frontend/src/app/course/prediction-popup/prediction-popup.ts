@@ -16,8 +16,8 @@ interface Resultat {
   selector: 'app-trip-popup',
   standalone: true,
   imports: [FormsModule, DatePipe],
-  templateUrl: './trip-popup.component.html',
-  styleUrl: './trip-popup.component.css',
+  templateUrl: './prediction-popup.prediction-popup.html',
+  styleUrl: './prediction-popup.prediction-popup.scss',
 })
 export class TripPopupComponent {
   private tripService = inject(TripService);
