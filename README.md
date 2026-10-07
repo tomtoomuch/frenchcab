@@ -91,6 +91,11 @@ Pour lancer la VM `groupe1@{numéro api}` et écrire le mot de passe. Pour ces i
 
 Pour lancer le frontend faire un push sur la branch `dev`, puis ouvrir sur internet `https://g1.valentinduflot.fr/`.
 
+## CI/CD
+Le `ci.yml` et le `cd.yml` sont dans le dossier `workflows` qui est dans le `.github`.
+
+**MAJ groupe 2 : nous avons enlever les tests backend et et test de l'API car il appelait une route Hello! qui n'existe plus. De plus il avait besoin de modèle de prédiction, mais nous l'avons ajouté dans `.gitignore`** 
+
 
 ## Informations sur les données
 
@@ -456,4 +461,7 @@ Puis ouvrir [http://localhost:8000/api/prediction/13](http://localhost:8000/api/
 2. `python taxi_duree_prediction.py.py` → vérifie qu'une prédiction marche
 3. `uvicorn api_prediction:app --port 8000` → vérifie l'API sans Docker
 4. `docker compose up --build` → lance tout : backend, ml et frontend
-S
+
+### Reste à faire pour la semaine 2
+- de consulter les courses enregistrées
+- d'annuler une course planifiée.
