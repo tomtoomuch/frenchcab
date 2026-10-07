@@ -48,7 +48,7 @@ Comme la réponse est un nombre, c'est une **régression**
 |---|---|---|
 | 1. Charger | `charger_donnees()` | |
 | 2. Nettoyer | `nettoyer()` | |
-| 3. Variables | `construire_variables()` | Crée `heure` et `est_weekend`, ainsi que la paire de zones `trajet_zones` (ex. `"161_236"`) |
+| 3. Variables | `construire_variables()` | Crée `heure` et `est_weekend`, ainsi que la paire de zones `trajet_zones` (ex. `"zone_names"`) |
 | 4. Train / test | `train_test_split` | 80 % des courses pour apprendre, 20 % pour vérifier sur des courses jamais vues |
 | 5. Baselines | `DummyRegressor`, médiane par paire, `LinearRegression` | Modèles très simples que le vrai modèle doit battre |
 | 6. Entraîner | `creer_pipeline()` | Prépare les données, puis entraîne un Gradient Boosting |
@@ -94,7 +94,7 @@ Ce fichier **utilise** le modèle déjà entraîné. Il ne réentraîne rien
 | Fonction | Rôle |
 |---|---|
 | `charger_modele()` | Ouvre `modele_duree_trajet.joblib` |
-| `charger_course_prediction(db, zone_depart, zone_arrivee, date_depart, heure_depart)` | `SELECT ... FROM trajets WHERE zone IN (...)`, puis la jointure avec `localisations` |
+| `constuire_course_prediction(db, zone_depart, zone_arrivee, date_depart, heure_depart)` | `SELECT ... FROM trajets WHERE zone IN (...)`, puis la jointure avec `localisations` |
 | `predire(modele, df)` | Applique `construire_variables()` (**la même** fonction qu'à l'entraînement), puis `modele.predict()` |
 | `afficher(df)` | Affiche une phrase par course |
 | `prediction(id_trajet)` | Fait tout : charger, prédire et afficher |
@@ -110,13 +110,13 @@ Points importants :
 
 ```bash
 cd backend/ML
-python taxi_duree_prediction.py.py      # lance prediction(20)
+python taxi_duree_prediction.py      # lance prediction(20)
 ```
 
 Résultat :
 
 ```
-la course uid_trajet 20 à 2023-01-01 start time 00:32 a durée 12 min (réelle 11 min) à localisation Manhattan/Midtown Center/Yellow Zone -> Manhattan/Upper East Side North/Yellow Zone
+Course prévue le 2027-03-15 à 10:00 de Bronx/Allerton/Pelham Gardens/Boro Zone vers Manhattan/Battery Park City/Yellow Zone - durée prédite : 48 min
 ```
 
 > Remarque : si la course a servi à l'entraînement, le modèle l'a déjà « vue ». La prédiction sera donc un peu trop bonne
@@ -131,7 +131,9 @@ Angular tourne dans le **navigateur**, qui ne peut pas lancer un fichier Python.
 
 ```
 GET /api/prediction/{uid_trajet}
+
 ```
+Pour ouvrir FASTApi [http://127.0.0.1:8000/docs]
 
 | Partie du code | Rôle |
 |---|---|
@@ -205,7 +207,7 @@ CMD ["uvicorn", "api_prediction:app", "--host", "0.0.0.0", "--port", "8000"]
 
 ### Service dans `docker-compose.yml`
 
-```yaml
+```yml
   ml:
     build: ./backend/ML
     container_name: conteneur-ml
