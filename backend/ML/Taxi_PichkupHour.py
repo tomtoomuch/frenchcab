@@ -135,7 +135,6 @@ def construire_variables(df: pd.DataFrame) -> pd.DataFrame:
     # Date / heure
     # -----------------------------
 
-    # Exemple : "10:32:00" -> 10
     df["heure"] = (
         df["pickup_hour"]
         .astype(str)

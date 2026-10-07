@@ -47,4 +47,18 @@ async function getPrediction(req, res) {
 }
 
 
-module.exports = {getPrediction};
+async function getZones(req, res) {
+    try {
+        const reponse = await predictionService.getZones();
+        return res.status(200).json({ success: true, reponse: reponse.data });
+    } catch (error) {
+        console.error("Erreur zones :", error.message);
+        return res.status(error.response?.status || 500).json({
+            success: false,
+            message: error.response?.data?.detail || error.message
+        });
+    }
+}
+
+
+module.exports = {getPrediction, getZones};

@@ -20,17 +20,9 @@ services:
     volumes:
       - ./frontend:/app
     depends_on:
-      - backend
+      - gateway
     restart: always
 
-  ml:
-    build: ./backend/ML
-    container_name: conteneur-ml
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./backend/data:/app/data
-    restart: always
 
   gateway:
     image: emfall/frenchcab-gateway:latest
@@ -38,6 +30,8 @@ services:
     container_name: conteneur-gateway
     ports:
       - "3000:3000"
+    depends_on:
+      - backend
     restart: always
 volumes:
   frontend:

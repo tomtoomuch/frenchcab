@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'http://gateway:3000' 
+  apiBaseUrl: 'http://localhost:3000' 
 
 };

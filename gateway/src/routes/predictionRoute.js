@@ -3,7 +3,8 @@ const router = express.Router();
 const predictionControllers = require("../controllers/predictionController");
 
 
-router.get("/prediction", predictionControllers.getPrediction);
+router.get("/", predictionControllers.getPrediction);
+router.get("/zones", predictionControllers.getZones);
 
 
 module.exports = router;

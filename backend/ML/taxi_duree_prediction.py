@@ -21,7 +21,7 @@ def charger_modele(chemin: Path) -> object:
 
 
 
-def construire_course_prediction(db_path: Path, zone_depart: str, zone_arrivee: str, date_depart: date, heure_depart: time) -> pd.DataFrame:
+def construire_course_prediction(db_path: Path, zone_depart: int, zone_arrivee: int, date_depart: date, heure_depart: time) -> pd.DataFrame:
 
     if not db_path.exists():
         raise FileNotFoundError(f"Base introuvable : {db_path}")
@@ -36,7 +36,7 @@ def construire_course_prediction(db_path: Path, zone_depart: str, zone_arrivee: 
                 zone,
                 zone_service
             FROM localisations
-            WHERE zone = ?
+            WHERE locationID = ?
             """,
             conn,
             params=(zone_depart,)
@@ -50,7 +50,7 @@ def construire_course_prediction(db_path: Path, zone_depart: str, zone_arrivee: 
                 zone,
                 zone_service
             FROM localisations
-            WHERE zone = ?
+            WHERE locationID = ?
             """,
             conn,params=(zone_arrivee,)
         )
@@ -91,7 +91,7 @@ def construire_course_prediction(db_path: Path, zone_depart: str, zone_arrivee: 
 
     df = pd.DataFrame([{
         "tpep_pickup_datetime": datetime_depart,
-        "pickup_hour": heure_depart.strftime("%H:%M:%S"),
+        "pickup_hour": heure_depart.hour,
         "pickup_weekday": date_depart.weekday(),
 
         "trip_distance": float(distance_moyenne),
@@ -133,7 +133,7 @@ def afficher(df: pd.DataFrame) -> None:
         )
 
 
-def prediction(zone_depart: str, zone_arrivee: str, date_depart: date , heure_depart:time, db_path: Path = DEFAULT_DB) -> float:
+def prediction(zone_depart: int, zone_arrivee: int, date_depart: date , heure_depart:time, db_path: Path = DEFAULT_DB) -> float:
     # prédit la durée de la course id_trajet et affiche le résultat
     modele = charger_modele(CHEMIN_MODELE)
     df = construire_course_prediction(db_path, zone_depart, zone_arrivee, date_depart, heure_depart)
@@ -145,8 +145,8 @@ def prediction(zone_depart: str, zone_arrivee: str, date_depart: date , heure_de
 if __name__ == "__main__":
 
     prediction(
-        zone_depart="Allerton/Pelham Gardens",
-        zone_arrivee="Battery Park City",
+        zone_depart=3,
+        zone_arrivee=13,
         date_depart=date(2027, 3, 15),
         heure_depart=time(10, 0)
     )
