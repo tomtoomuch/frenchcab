@@ -12,20 +12,30 @@ Chaque utilisateur dispose d'une branche créée sur ```origin/dev/```
 
 ## Structure du projet
 
-
+``` text
 /projet-taxi-prototype
 ├── .github/                # Configuration CI/CD
 │   └── workflows/
 │       └── ci.yml          # Pipeline de test et de build
 ├── .gitignore
-├── README.md
+├── compose.yml
+├── compose_override.yml
+├── .dockerignore
+├── README.md (général)
+
 Règles de contribution et installation
+
+├── gateway/
+│   │   └── Dockerfile
+│   ├── src/
+
 ├── backend/
 │   │   └── Dockerfile
 │   ├── api/
 │   ├── db/                 # Code pour la connexion et les requêtes SQL
                             # Code Node.js/Express pour l'API
-    .env
+├── .env
+├── README.md (backend)
 
 └── frontend/
 │       └── Dockerfile
@@ -35,15 +45,9 @@ Règles de contribution et installation
 ├── tests/                  # Tous les tests (Vitest/Jest)
 ├── sql/
 
+```
+
 ## Contributing
-
-**Pas de push** sur la branche ```dev``` : chacun travaille sur sa branche, les fusions sont faites uniquement après validation des tests, par l'intégrateur.
-
-Les commits sont étiquetés en fonction du type de travail qui a été effectué.
-Par exemple : 
-<doc>Mise à jour de la doc
-<fix>Corrrection de la ligne / fichier / fonction
-<feat>Ajout de la fonctionnalité
 
 [Ensemble des règles de contribution du projet](./CONTRIBUTING.md)
 
@@ -59,6 +63,18 @@ Demander l'accès en tant que contributeur au propriétaire `tomtoomuch`.
 
 ### Docker
 
+#### 1. Organisation du projet
+
+Le projet a maintenant **3 conteneurs** :
+
+| Service | Image | Port | Rôle |
+|---|---|---|---|
+| `gateway` | `python:3.14-slim` | 3000 | API Express (routes)|
+| `backend` | `python:3.14-slim` | 3001 | API FastAPI (prédiction) |
+| `frontend` | nginx | 4200 | Angular |
+
+#### 2. Installation
+
 Importer les images du dockerhub
 ```
 docker compose pull
@@ -67,8 +83,17 @@ Puis lancer les conteners
 ```
 docker compose up
 ```
+### VM
 
-## Dictionnaire de données
+Pour lancer la VM `groupe1@{numéro api}` et écrire le mot de passe. Pour ces informations voir le fichier txt envoyé par le goupe précédent.
+
+### Lancer le front
+
+Pour lancer le frontend faire un push sur la branch `dev`, puis ouvrir sur internet `https://g1.valentinduflot.fr/`.
+
+
+## Information sur les données
+### Dictionnaire de données
 
 | Nom de champ          | Description                                                                                                                                                                                                                                                   | Type                             |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
@@ -100,13 +125,13 @@ docker compose up
 | zone         | zone du quartier       | str  |
 | service_zone | zone de service        | str  |
 
-##  Dictionnaire de termes 'métier'
+###  Dictionnaire de termes 'métier'
 
 TPEP - Taxicab Passenger Enhancement Program
 MTA tax - Metropolitan Commuter Transportation Mobility Tax
 Congestion surcharge : taxe de traversée d'unepartie spécifique de Manhattan
 
-## ETL
+<!-- ## ETL
 
 ### /backend/etl/extraction.py
 
@@ -148,17 +173,13 @@ backend/data/clean/
 Création du `raport_2023.json` et du fichier `yellow_tripdata_2023`
 
 3. Initialiser la bdd et importer les données
-Lancer le fichier `load_taxi_data.py` qui va créer la base de donnée `frenchcab.db`.
+Lancer le fichier `load_taxi_data.py` qui va créer la base de donnée `frenchcab.db`. -->
 
-## VM
 
-Pour lancer la VM `groupe1@{numéro api}` et écrire le mot de passe. Pour ces informations voir le fichier txt envoyé par le goupe précédent.
 
-## Lancer le front
 
-Pour lancer le frontend faire un push sur la branch `dev`, puis ouvrir sur internet `https://g1.valentinduflot.fr/`.
 
-##### Étapes du traitement
+<!-- ##### Étapes du traitement
 
 1. le script lit les **19 colonnes** ; les 4 colonnes techniques du portail (id, version, created_at, updated_at) sont ignorées.
 
@@ -243,22 +264,17 @@ jour de départ (0 = lundi, 6 = dimanche)
 
  ## Problématiques
 
-Incohérences entre colonnes et tables sql -> ajouter les quelques colonnes manquantes dans la table "trajets" et  s'assurer de la présence du champ `uid_trajet` qui est un identifiant unique auutoincrémenté et fait office de clé primaire.
+Incohérences entre colonnes et tables sql -> ajouter les quelques colonnes manquantes dans la table "trajets" et  s'assurer de la présence du champ `uid_trajet` qui est un identifiant unique auutoincrémenté et fait office de clé primaire. -->
+
+## Gateway
+
+### Route backend
+Exposition de la route du backend Fastapi GET http://localhost:3001/api/prediction
 
 
-## Backend Node.js
+### Routes qui interroge directement la bdd
 
-### routes
-
-GET http://localhost:3001/api/courses = toutes les courses (pagination a 100 première course sinon crash car trop de course)
-
-Résultat docker : 
-conteneur-back  | App connecté sur le port 3001
-conteneur-back  |  Connexion réussie à la base SQLite (frenchcab.db) !
-conteneur-back  | Erreur SQL : null
-conteneur-back  | Nombre de courses : 100
-
-GET http://localhost:3001/api/courseID?id=1 = course par ID
+Expose toutes les courses (pagination a 100 première course sinon crash car trop de course) par id.
 
 ## connexion db 
 
@@ -317,7 +333,7 @@ graph LR
     class angularApp frontend
 ```
 
-### 1. Le modèle — `Taxi_PichkupHour.py`
+<!-- ### 1. Le modèle — `Taxi_PichkupHour.py`
 
 #### Le but
 
@@ -363,18 +379,18 @@ Le **Pipeline** regroupe la préparation des données et le modèle dans **un se
 - **MAE** : erreur moyenne en minutes. C'est la plus facile à lire
 - **RMSE** : ressemble à la MAE, mais punit davantage les grosses erreurs
 - **R²** : entre 0 et 1, la part de la variation expliquée (1 = parfait)
-- Si le score **train** est bien meilleur que le score **test**, le modèle a appris par cœur : c'est du **surapprentissage**
+- Si le score **train** est bien meilleur que le score **test**, le modèle a appris par cœur : c'est du **surapprentissage** -->
 
-#### Lancer
+<!-- #### Lancer
 
 ```bash
 cd backend/ML
 python Taxi_PichkupHour.py                  # avec la distance (1 million de courses)
 python Taxi_PichkupHour.py 2000000          # échantillon plus grand (0 = toutes les courses)
 python Taxi_PichkupHour.py --sans-distance  # seulement les zones et l'heure
-```
+``` -->
 
-### 2. La prédiction — `taxi_duree_prediction.py`
+<!-- ### 2. La prédiction — `taxi_duree_prediction.py`
 
 Ce fichier **utilise** le modèle déjà entraîné. Il ne réentraîne rien
 
@@ -453,21 +469,19 @@ GET /api/prediction/{uid_trajet}
 cd backend/ML
 pip install fastapi uvicorn
 uvicorn api_prediction:app --reload --port 8000
-```
+``` -->
 
-### 4. Docker
+<!-- ### 4. Docker
 
 Le projet a maintenant **3 conteneurs** :
 
 | Service | Image | Port | Rôle |
 |---|---|---|---|
-| `backend` | `node:22` | 3001 | API Express (liste des courses) |
-| `ml` | `python:3.14-slim` | 8000 | API FastAPI (prédiction) |
-| `frontend` | nginx | 4200 | Angular |
+| `gateway` | `python:3.14-slim` | 3000 | API Express (routes)|
+| `backend` | `python:3.14-slim` | 3001 | API FastAPI (prédiction) |
+| `frontend` | nginx | 4200 | Angular | -->
 
-> Le service `backend` est une image **Node** : elle ne contient pas Python. C'est pour ça que la prédiction a besoin de son propre conteneur, `ml`
-
-#### `backend/ML/requirements.txt`
+<!-- #### `backend/ML/requirements.txt`
 
 ```text
 fastapi
@@ -489,7 +503,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 EXPOSE 8000
 CMD ["uvicorn", "api_prediction:app", "--host", "0.0.0.0", "--port", "8000"]
-```
+``` -->
 
 #### Service dans `docker-compose.yml`
 
