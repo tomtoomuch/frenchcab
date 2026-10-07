@@ -15,7 +15,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:4200"],
 modele = charger_modele(CHEMIN_MODELE)
 
 
-@app.get("/api/prediction")
+@app.get("/prediction")
 def prediction_par_location(zone_depart: str, zone_arrivee: str, date_depart: date, heure_depart: time) -> dict:
 
     try:
