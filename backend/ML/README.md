@@ -9,7 +9,7 @@ backend/
 └── ML/
     ├── Taxi_PichkupHour.py          ← 1. entraînement du modèle
     ├── modele_duree_trajet.joblib   ←    modèle sauvegardé
-    ├── taxi_duree_prediction.py.py     ← 2. prédiction d'une course par uid_trajet
+    ├── taxi_duree_prediction.py.py     ← 2. prédiction d'une course par (zone_depart, zone_arrivee, date, heure)
     ├── api_prediction.py            ← 3. API FastAPI
     ├── requirements.txt             ← 4. dépendances Python
     ├── Dockerfile                   ← 4. image Docker de l'API
@@ -59,7 +59,7 @@ Comme la réponse est un nombre, c'est une **régression**
 
 | Type | Variables | Traitement |
 |---|---|---|
-| Nombres | `trip_distance`, `heure`, `pickup_weekday`, `est_weekend`, `passenger_count` | Utilisées telles quelles |
+| Nombres | `trip_distance`, `heure`, `pickup_weekday`, `est_weekend`, `mois` | Utilisées telles quelles |
 | Peu de catégories | `quartier_dep/arr`, `zone_service_dep/arr`, `RateCodeID`, `vendorID` | **OneHotEncoder** : une colonne 0/1 par valeur |
 | Beaucoup de catégories | `pu_locationID`, `do_locationID`, `trajet_zones` | **TargetEncoder** : chaque zone est remplacée par la durée moyenne de ses courses |
 
@@ -94,7 +94,7 @@ Ce fichier **utilise** le modèle déjà entraîné. Il ne réentraîne rien
 | Fonction | Rôle |
 |---|---|
 | `charger_modele()` | Ouvre `modele_duree_trajet.joblib` |
-| `charger_courses(db, [uid])` | `SELECT ... FROM trajets WHERE uid_trajet IN (...)`, puis la jointure avec `localisations` |
+| `charger_course_prediction(db, zone_depart, zone_arrivee, date_depart, heure_depart)` | `SELECT ... FROM trajets WHERE zone IN (...)`, puis la jointure avec `localisations` |
 | `predire(modele, df)` | Applique `construire_variables()` (**la même** fonction qu'à l'entraînement), puis `modele.predict()` |
 | `afficher(df)` | Affiche une phrase par course |
 | `prediction(id_trajet)` | Fait tout : charger, prédire et afficher |
@@ -138,7 +138,7 @@ GET /api/prediction/{uid_trajet}
 | `app = FastAPI(...)` | Crée l'application web |
 | `http://localhost:4200` | Autorise Angular (port 4200) à appeler l'API (port 8000) |
 | Chargement du modèle | Le modèle est chargé **une seule fois**, au démarrage, et pas à chaque requête |
-| `@app.get("/api/prediction/{uid_trajet}")` | Le nombre dans l'adresse devient le paramètre `uid_trajet: int` |
+| `@app.get("/api/prediction")` | Attend les paramètres dans le body `zone_depart: str, zone_arrivee: str, date_depart: date, heure_depart: time` |
 | `HTTPException(404)` | Erreur renvoyée si la course n'existe pas |
 | `return {...}` | Le dictionnaire est renvoyé en JSON (on convertit avec `int()` et `float()`, car le JSON ne connaît pas les types de pandas) |
 
@@ -152,13 +152,10 @@ GET /api/prediction/{uid_trajet}
 
 ```json
 {
-  "uid_trajet": 13,
-  "date": "2023-01-01",
-  "start_time": "00:21",
-  "duree_predite": 15,
-  "duree_reelle": 14,
-  "depart": "Manhattan/Midtown Center/Yellow Zone",
-  "arrivee": "Manhattan/Upper East Side South/Yellow Zone"
+  "zone_depart": "Allerton/Pelham Gardens",
+  "zone_arrivee": "Battery Park City",
+  "date_depart": "2027-03-15",
+  "heure_depart": "10:00:00",
 }
 ```
 
