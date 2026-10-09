@@ -6,3 +6,7 @@ services:
   frontend:
     build: ./frontend
     container_name: conteneur-front
+  
+  gateway:
+    build: ./gateway
+    container_name: contenur-gateway
