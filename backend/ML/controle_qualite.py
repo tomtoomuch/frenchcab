@@ -1,18 +1,3 @@
-"""Contrôle de qualité du modèle pour la CI.
-
-Évalue le modèle (ou lit un rapport JSON déjà produit par evaluation_modele.py)
-et compare la MAE au seuil défini dans seuil_qualite.json.
-
-Codes de retour :
-    0  MAE <= seuil          (qualité suffisante)
-    1  MAE >  seuil          (échec qualité -> la CI échoue)
-    2  erreur technique      (modèle / données introuvables, rapport illisible...)
-
-Exemples :
-    python controle_qualite.py
-    python controle_qualite.py --seuil 4.5
-    python controle_qualite.py --rapport rapport.json
-"""
 from __future__ import annotations
 
 import argparse
@@ -34,10 +19,8 @@ def verifier(mae: float, seuil: float) -> bool:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Vérifie que la MAE du modèle respecte le seuil")
-    p.add_argument("--seuil", type=float, default=None,
-                   help="seuil en minutes (défaut : seuil_qualite.json)")
-    p.add_argument("--rapport", type=Path, default=None,
-                   help="rapport JSON existant (sinon le modèle est évalué)")
+    p.add_argument("--seuil", type=float, default=None, help="seuil en minutes (défaut : seuil_qualite.json)")
+    p.add_argument("--rapport", type=Path, default=None, help="rapport JSON existant (sinon le modèle est évalué)")
     p.add_argument("--sortie", type=Path, default=None, help="écrit le rapport JSON évalué")
     a = p.parse_args(argv)
 
@@ -46,12 +29,10 @@ def main(argv: list[str] | None = None) -> int:
         if a.rapport:
             rapport = json.loads(a.rapport.read_text(encoding="utf-8"))
         else:
-            from evaluation_modele import (CHEMIN_MODELE, DONNEES_PAR_DEFAUT,
-                                           ZONES_PAR_DEFAUT, evaluer_modele)
+            from evaluation_modele import (CHEMIN_MODELE, DONNEES_PAR_DEFAUT, ZONES_PAR_DEFAUT, evaluer_modele)
             rapport = evaluer_modele(CHEMIN_MODELE, DONNEES_PAR_DEFAUT, ZONES_PAR_DEFAUT)
             if a.sortie:
-                a.sortie.write_text(json.dumps(rapport, indent=2, ensure_ascii=False) + "\n",
-                                    encoding="utf-8")
+                a.sortie.write_text(json.dumps(rapport, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         mae = float(rapport["metriques"]["mae_minutes"])
     except (OSError, ValueError, KeyError) as e:
         print(f"ERREUR : contrôle impossible ({type(e).__name__}: {e})", file=sys.stderr)

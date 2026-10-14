@@ -1,18 +1,3 @@
-"""Évaluation du modèle de durée de trajet existant (sans réentraînement).
-
-Le modèle est chargé tel quel, puis ses prédictions sont comparées aux durées
-réelles d'un jeu de courses TLC *distinct* des données d'entraînement (le modèle
-est entraîné sur 2023, le jeu d'évaluation fourni est janvier 2026).
-
-Le jeu de données est un CSV ou un parquet au format TLC "yellow taxi" avec au
-minimum : tpep_pickup_datetime, tpep_dropoff_datetime, trip_distance,
-PULocationID, DOLocationID.
-
-Exemples :
-    python evaluation_modele.py
-    python evaluation_modele.py --donnees yellow_tripdata_2026-01.parquet --sortie rapport.json
-    python evaluation_modele.py --maj-metadonnees      # enregistre la MAE dans le .meta.json
-"""
 from __future__ import annotations
 
 import argparse
@@ -30,12 +15,11 @@ from Taxi_PichkupHour import CHEMIN_MODELE, NOMS_ZONES, construire_variables, ne
 
 DOSSIER_EVAL = Path(__file__).resolve().parent.parent / "eval"
 DONNEES_PAR_DEFAUT = DOSSIER_EVAL / "tlc_eval_2026-01.csv"
-ZONES_PAR_DEFAUT = DOSSIER_EVAL / "taxi_zone_lookup.csv"
 
-COLONNES_TLC = [
-    "tpep_pickup_datetime", "tpep_dropoff_datetime", "trip_distance",
-    "PULocationID", "DOLocationID",
-]
+BASE_DIR = Path(__file__).resolve().parent.parent  # backend/ 
+ZONES_PAR_DEFAUT = BASE_DIR / "data" / "taxi_zone_lookup.csv" 
+
+COLONNES_TLC = ["tpep_pickup_datetime", "tpep_dropoff_datetime", "trip_distance", "PULocationID", "DOLocationID",]
 
 
 def lire_donnees(chemin: Path) -> pd.DataFrame:
@@ -76,7 +60,7 @@ def preparer(df: pd.DataFrame, zones_csv: Path) -> pd.DataFrame:
 
 def evaluer_modele(modele_path: Path, donnees: Path, zones: Path,
                    echantillon: int = 0, graine: int = 42) -> dict:
-    """Retourne le rapport d'évaluation (dict sérialisable en JSON)."""
+    # Retourne le rapport d'évaluation (dict sérialisable en JSON).
     import joblib
 
     if not Path(modele_path).exists():
@@ -130,15 +114,11 @@ def evaluer_modele(modele_path: Path, donnees: Path, zones: Path,
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Évalue le modèle existant (sans réentraînement)")
     p.add_argument("--modele", type=Path, default=CHEMIN_MODELE)
-    p.add_argument("--donnees", type=Path, default=DONNEES_PAR_DEFAUT,
-                   help="CSV ou parquet TLC distinct des données d'entraînement")
-    p.add_argument("--zones", type=Path, default=ZONES_PAR_DEFAUT,
-                   help="taxi_zone_lookup.csv")
-    p.add_argument("--echantillon", type=int, default=0,
-                   help="nombre max de courses évaluées (0 = toutes)")
+    p.add_argument("--donnees", type=Path, default=DONNEES_PAR_DEFAUT, help="CSV ou parquet TLC distinct des données d'entraînement")
+    p.add_argument("--zones", type=Path, default=ZONES_PAR_DEFAUT, help="taxi_zone_lookup.csv")
+    p.add_argument("--echantillon", type=int, default=0, help="nombre max de courses évaluées (0 = toutes)")
     p.add_argument("--sortie", type=Path, default=None, help="écrit le rapport JSON dans ce fichier")
-    p.add_argument("--maj-metadonnees", action="store_true",
-                   help="enregistre la MAE dans le .meta.json du modèle")
+    p.add_argument("--maj-metadonnees", action="store_true", help="enregistre la MAE dans le .meta.json du modèle")
     a = p.parse_args(argv)
 
     rapport = evaluer_modele(a.modele, a.donnees, a.zones, a.echantillon)
